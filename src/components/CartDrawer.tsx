@@ -299,8 +299,8 @@ const CartDrawer = ({ open, onClose }: Props) => {
                               }}
                               placeholder="0,00"
                               className={`w-full bg-secondary border-2 rounded-xl py-3 pl-10 pr-10 text-foreground placeholder:text-muted-foreground/50 focus:outline-none transition-colors ${changeAmount && (isNaN(parseFloat(changeAmount.replace(',', '.'))) || parseFloat(changeAmount.replace(',', '.')) <= totalPrice)
-                                  ? 'border-destructive focus:border-destructive bg-destructive/5'
-                                  : 'border-transparent focus:border-primary'
+                                ? 'border-destructive focus:border-destructive bg-destructive/5'
+                                : 'border-transparent focus:border-primary'
                                 }`}
                             />
                             {changeAmount && (isNaN(parseFloat(changeAmount.replace(',', '.'))) || parseFloat(changeAmount.replace(',', '.')) <= totalPrice) && (
@@ -318,12 +318,16 @@ const CartDrawer = ({ open, onClose }: Props) => {
 
                         <button
                           onClick={() => {
-                            setNeedsChange(false);
-                            setChangeAmount("");
+                            if (needsChange === false) {
+                              setNeedsChange(null);
+                            } else {
+                              setNeedsChange(false);
+                              setChangeAmount("");
+                            }
                           }}
                           className={`w-full py-3 rounded-xl border-2 font-bold transition-all ${needsChange === false
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-border bg-card text-muted-foreground hover:border-primary/50'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-card text-muted-foreground hover:border-primary/50'
                             }`}
                         >
                           Não preciso de troco
