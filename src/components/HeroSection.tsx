@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import burgerImg from "@/assets/burger.png";
+import { ShoppingBag } from "lucide-react";
 
 const HeroSection = () => {
   const scrollToMenu = () => {
@@ -10,7 +10,7 @@ const HeroSection = () => {
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary opacity-90" />
-      
+
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <motion.div
@@ -31,9 +31,9 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToMenu}
-              className="mt-8 px-10 py-4 bg-primary text-primary-foreground rounded-full text-lg font-display font-semibold uppercase tracking-wider shadow-lg hover:shadow-xl transition-shadow"
+              className="mt-8 px-10 py-4 bg-primary text-primary-foreground rounded-full text-lg font-display font-semibold uppercase tracking-wider shadow-lg hover:shadow-xl transition-shadow flex items-center gap-2 mx-auto md:mx-0"
             >
-              Peça Agora 🍔
+              Peça Agora <ShoppingBag className="w-5 h-5" />
             </motion.button>
           </motion.div>
 
@@ -44,9 +44,9 @@ const HeroSection = () => {
             className="flex justify-center"
           >
             <img
-              src={burgerImg}
-              alt="Hambúrguer artesanal"
-              className="w-72 md:w-96 rounded-3xl shadow-2xl"
+              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              alt="Hambúrguer artesanal premium"
+              className="w-72 md:w-[500px] rounded-3xl shadow-2xl object-cover"
             />
           </motion.div>
         </div>

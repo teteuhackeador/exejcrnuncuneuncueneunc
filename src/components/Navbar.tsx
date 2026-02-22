@@ -1,4 +1,4 @@
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, ChefHat } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { motion } from "framer-motion";
 
@@ -8,8 +8,8 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="#" className="font-display font-bold text-xl uppercase text-foreground">
-          🍔 Hamburgueria <span className="text-primary">Modelo</span>
+        <a href="#" className="font-display font-bold text-xl uppercase text-foreground flex items-center gap-2">
+          <ChefHat className="text-primary w-6 h-6" /> Hamburgueria <span className="text-primary">Modelo</span>
         </a>
 
         <div className="flex items-center gap-6">
