@@ -20,11 +20,11 @@ export default function VerHash() {
     const [tampered, setTampered] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         const trimmed = input.trim();
         if (!trimmed) return;
 
-        const decoded = decodeOrder(trimmed);
+        const decoded = await decodeOrder(trimmed);
         if (!decoded) {
             setOrder(null);
             setNotFound(true);

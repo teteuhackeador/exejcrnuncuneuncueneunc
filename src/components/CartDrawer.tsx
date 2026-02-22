@@ -19,7 +19,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
   const [addressBairro, setAddressBairro] = useState("");
   const [addressComplemento, setAddressComplemento] = useState("");
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (items.length === 0) return;
 
     if (!isCheckoutStep) {
@@ -37,12 +37,12 @@ const CartDrawer = ({ open, onClose }: Props) => {
       return;
     }
     if (deliveryType === "delivery" && (!addressRua || !addressNumero || !addressBairro)) {
-      alert("Por favor, preencha o endereço de entrega (Rua, Número e Bairro).");
+      alert("Por favor, preencha o endere\u00e7o de entrega (Rua, N\u00famero e Bairro).");
       return;
     }
 
     const lines = items.map((item) => {
-      let line = `*${item.quantity}x ${item.name}* - R$ ${(item.price * item.quantity).toFixed(2)}`;
+      let line = `*${item.quantity}x ${item.name}*`;
       if (item.additionals.length > 0) {
         line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
@@ -58,7 +58,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
     const paymentLabel = paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cart\u00e3o' : 'Dinheiro';
     const deliveryLabel = deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local';
 
-    // Build order payload and generate hash
+    // Build order payload and generate encrypted hash
     const orderPayload: OrderPayload = {
       items: items.map((item) => ({
         name: item.name,
@@ -79,7 +79,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
       total: totalPrice,
       createdAt: new Date().toISOString(),
     };
-    const orderHash = encodeOrder(orderPayload);
+    const orderHash = await encodeOrder(orderPayload);
 
     let message = `Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
     message += `*Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
@@ -95,8 +95,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
       }
     }
 
-    message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
-    message += `\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n*C\u00f3digo do Pedido (para o atendente):*\n${orderHash}`;
+    message += `\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n*C\u00f3digo do Pedido (para o atendente):*\n${orderHash}`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
