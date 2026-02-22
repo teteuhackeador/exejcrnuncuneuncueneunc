@@ -22,7 +22,7 @@ export const menuItems: MenuItem[] = [
     description: "Pão brioche, blend 180g, bacon crocante, cebola caramelizada e molho BBQ.",
     price: 34,
     category: 'burger',
-    image: "https://images.unsplash.com/photo-1594212202684-2451bdc0a320?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: "3",
@@ -78,7 +78,7 @@ export const menuItems: MenuItem[] = [
     description: "Refrigerante lata bem gelado.",
     price: 6,
     category: 'drink',
-    image: "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1595981267035-7b04d84d12bb?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: "10",
@@ -86,7 +86,7 @@ export const menuItems: MenuItem[] = [
     description: "Cerveja pilsen long neck (330ml).",
     price: 12,
     category: 'drink',
-    image: "https://images.unsplash.com/photo-1628189870195-ab3dfc8cba0c?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1614316047717-b0853489e246?auto=format&fit=crop&q=80&w=800",
   },
 ];
 
