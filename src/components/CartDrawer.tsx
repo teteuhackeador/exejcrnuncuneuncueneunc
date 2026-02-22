@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MapPin, CreditCard, Banknote, QrCode, Store, Truck } from "lucide-react";
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MapPin, CreditCard, Banknote, QrCode, Store, Truck, Bike } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 interface Props {
@@ -8,43 +8,37 @@ interface Props {
   onClose: () => void;
 }
 
-type Step = "cart" | "checkout";
-type PaymentMethod = "pix" | "credito" | "dinheiro" | "";
-type DeliveryType = "delivery" | "retirada" | "";
-
-interface Address {
-  rua: string;
-  numero: string;
-  bairro: string;
-  complemento: string;
-  referencia: string;
-}
-
-const emptyAddress: Address = { rua: "", numero: "", bairro: "", complemento: "", referencia: "" };
-
 const CartDrawer = ({ open, onClose }: Props) => {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<Step>("cart");
-  const [payment, setPayment] = useState<PaymentMethod>("");
-  const [delivery, setDelivery] = useState<DeliveryType>("");
-  const [address, setAddress] = useState<Address>(emptyAddress);
-
-  const resetCheckout = () => {
-    setStep("cart");
-    setPayment("");
-    setDelivery("");
-    setAddress(emptyAddress);
-  };
-
-  const handleClose = () => {
-    resetCheckout();
-    onClose();
-  };
-
-  const canFinalize = payment !== "" && delivery !== "" && (delivery === "retirada" || (address.rua && address.numero && address.bairro));
+  const [isCheckoutStep, setIsCheckoutStep] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [deliveryType, setDeliveryType] = useState("");
+  const [addressRua, setAddressRua] = useState("");
+  const [addressNumero, setAddressNumero] = useState("");
+  const [addressBairro, setAddressBairro] = useState("");
+  const [addressComplemento, setAddressComplemento] = useState("");
 
   const handleFinalize = () => {
-    if (!canFinalize) return;
+    if (items.length === 0) return;
+
+    if (!isCheckoutStep) {
+      setIsCheckoutStep(true);
+      return;
+    }
+
+    // Validation
+    if (!paymentMethod) {
+      alert("Por favor, selecione a forma de pagamento.");
+      return;
+    }
+    if (!deliveryType) {
+      alert("Por favor, selecione a forma de entrega.");
+      return;
+    }
+    if (deliveryType === "delivery" && (!addressRua || !addressNumero || !addressBairro)) {
+      alert("Por favor, preencha o endereço de entrega (Rua, Número e Bairro).");
+      return;
+    }
 
     const lines = items.map((item) => {
       let line = `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}`;
@@ -60,35 +54,38 @@ const CartDrawer = ({ open, onClose }: Props) => {
       return line;
     });
 
-    const paymentLabels: Record<string, string> = { pix: "PIX", credito: "Cartão de Crédito", dinheiro: "Dinheiro" };
-    const deliveryLabel = delivery === "delivery" ? "Delivery" : "Retirada no estabelecimento";
+    let message = `Olá! Gostaria de pedir:\n\n${lines.join("\n\n")}\n\n`;
+    message += `*Forma de Pagamento:* ${paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cartão' : 'Dinheiro'}\n`;
+    message += `*Entrega:* ${deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local'}\n`;
 
-    let message = `Olá! Gostaria de pedir:\n\n${lines.join("\n\n")}\n\nTotal: R$ ${totalPrice.toFixed(2)}\n\n💳 Pagamento: ${paymentLabels[payment]}\n🚚 Entrega: ${deliveryLabel}`;
-
-    if (delivery === "delivery") {
-      const sanitize = (s: string) => s.trim().slice(0, 200);
-      message += `\n\n📍 Endereço:\nRua: ${sanitize(address.rua)}, Nº ${sanitize(address.numero)}\nBairro: ${sanitize(address.bairro)}`;
-      if (address.complemento.trim()) message += `\nComplemento: ${sanitize(address.complemento)}`;
-      if (address.referencia.trim()) message += `\nReferência: ${sanitize(address.referencia)}`;
+    if (deliveryType === 'delivery') {
+      message += `*Endereço:* ${addressRua}, ${addressNumero}\n`;
+      message += `*Bairro:* ${addressBairro}\n`;
+      if (addressComplemento) {
+        message += `*Complemento:* ${addressComplemento}\n`;
+      }
     }
+
+    message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
+
     clearCart();
-    resetCheckout();
+    setIsCheckoutStep(false);
+    setPaymentMethod("");
+    setDeliveryType("");
+    setAddressRua("");
+    setAddressNumero("");
+    setAddressBairro("");
+    setAddressComplemento("");
     onClose();
   };
 
-  const paymentOptions = [
-    { value: "pix" as const, label: "PIX", icon: QrCode },
-    { value: "credito" as const, label: "Cartão", icon: CreditCard },
-    { value: "dinheiro" as const, label: "Dinheiro", icon: Banknote },
-  ];
-
-  const deliveryOptions = [
-    { value: "delivery" as const, label: "Delivery", icon: Truck },
-    { value: "retirada" as const, label: "Retirar", icon: Store },
-  ];
+  const resetAndClose = () => {
+    setIsCheckoutStep(false);
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -99,7 +96,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm"
-            onClick={handleClose}
+            onClick={resetAndClose}
           />
           <motion.div
             initial={{ x: "100%" }}
@@ -108,36 +105,37 @@ const CartDrawer = ({ open, onClose }: Props) => {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-card shadow-2xl flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-border">
               <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-                {step === "checkout" && (
-                  <button onClick={() => setStep("cart")} className="p-1 hover:bg-secondary rounded-full transition-colors">
-                    <ArrowLeft className="w-5 h-5 text-foreground" />
+                {isCheckoutStep ? (
+                  <button onClick={() => setIsCheckoutStep(false)} className="p-1 -ml-1 hover:bg-secondary rounded-full transition-colors">
+                    <ArrowLeft className="w-6 h-6" />
                   </button>
+                ) : (
+                  <ShoppingBag className="w-6 h-6 text-primary" />
                 )}
-                <ShoppingBag className="w-6 h-6 text-primary" />
-                {step === "cart" ? "Carrinho" : "Finalizar"}
+                {isCheckoutStep ? "Checkout" : "Carrinho"}
               </h2>
-              <button onClick={handleClose} className="p-2 hover:bg-secondary rounded-full transition-colors">
-                <X className="w-5 h-5 text-foreground" />
+              <button onClick={resetAndClose} className="p-2 hover:bg-secondary rounded-full transition-colors text-foreground">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {step === "cart" && (
-                <>
-                  {items.length === 0 ? (
-                    <div className="text-center py-16 text-muted-foreground">
-                      <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                      <p className="text-lg">Seu carrinho está vazio</p>
-                      <p className="text-sm mt-1">Adicione itens do cardápio!</p>
-                    </div>
-                  ) : (
-                    items.map((item) => {
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {!isCheckoutStep ? (
+                // Cart Items View
+                items.length === 0 ? (
+                  <div className="text-center py-16 text-muted-foreground">
+                    <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p className="text-lg">Seu carrinho está vazio</p>
+                    <p className="text-sm mt-1">Adicione itens do cardápio!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {items.map((item) => {
                       const additionalsPrice = item.additionals.reduce((s, a) => s + a.price, 0);
                       const itemTotal = (item.price + additionalsPrice) * item.quantity;
+
                       return (
                         <motion.div
                           key={item.id}
@@ -151,181 +149,174 @@ const CartDrawer = ({ open, onClose }: Props) => {
                             <div className="flex-1">
                               <h4 className="font-display font-bold text-foreground">{item.name}</h4>
                               {item.additionals.length > 0 && (
-                                <p className="text-xs text-muted-foreground mt-1">+ {item.additionals.map((a) => a.name).join(", ")}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  + {item.additionals.map((a) => a.name).join(", ")}
+                                </p>
                               )}
                               {item.removals.length > 0 && (
-                                <p className="text-xs text-muted-foreground">Sem: {item.removals.join(", ")}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Sem: {item.removals.join(", ")}
+                                </p>
                               )}
                               {item.observation && (
                                 <p className="text-xs text-muted-foreground italic">"{item.observation}"</p>
                               )}
                             </div>
-                            <button onClick={() => removeItem(item.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors">
+                            <button
+                              onClick={() => removeItem(item.id)}
+                              className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors"
+                            >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </button>
                           </div>
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center gap-3">
-                              <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 rounded-full bg-card flex items-center justify-center">
-                                <Minus className="w-3 h-3 text-foreground" />
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-foreground"
+                              >
+                                <Minus className="w-3 h-3" />
                               </button>
                               <span className="font-bold text-foreground">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                                <Plus className="w-3 h-3 text-primary-foreground" />
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground"
+                              >
+                                <Plus className="w-3 h-3" />
                               </button>
                             </div>
                             <span className="font-bold text-primary">R$ {itemTotal.toFixed(2)}</span>
                           </div>
                         </motion.div>
                       );
-                    })
-                  )}
-                </>
-              )}
-
-              {step === "checkout" && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                  {/* Payment */}
-                  <div>
-                    <h3 className="font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-primary" />
-                      Forma de Pagamento
+                    })}
+                  </div>
+                )
+              ) : (
+                // Checkout Form View
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  {/* Payment Method */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+                      <CreditCard className="w-5 h-5 text-primary" /> Forma de Pagamento
                     </h3>
                     <div className="grid grid-cols-3 gap-2">
-                      {paymentOptions.map((opt) => (
+                      {[
+                        { id: 'pix', icon: QrCode, label: 'Pix' },
+                        { id: 'cartao', icon: CreditCard, label: 'Cartão' },
+                        { id: 'dinheiro', icon: Banknote, label: 'Dinheiro' }
+                      ].map((method) => (
                         <button
-                          key={opt.value}
-                          onClick={() => setPayment(opt.value)}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                            payment === opt.value
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-secondary text-muted-foreground hover:border-primary/40"
-                          }`}
+                          key={method.id}
+                          onClick={() => setPaymentMethod(method.id)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${paymentMethod === method.id
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-card text-muted-foreground hover:border-primary/50'
+                            }`}
                         >
-                          <opt.icon className="w-6 h-6" />
-                          <span className="text-xs font-bold">{opt.label}</span>
+                          <method.icon className="w-6 h-6 mb-1" />
+                          <span className="text-xs font-bold">{method.label}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Delivery */}
-                  <div>
-                    <h3 className="font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                      <Truck className="w-5 h-5 text-primary" />
-                      Tipo de Entrega
+                  {/* Delivery Option */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+                      <Truck className="w-5 h-5 text-primary" /> Forma de Entrega
                     </h3>
                     <div className="grid grid-cols-2 gap-2">
-                      {deliveryOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => { setDelivery(opt.value); if (opt.value === "retirada") setAddress(emptyAddress); }}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                            delivery === opt.value
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-secondary text-muted-foreground hover:border-primary/40"
+                      <button
+                        onClick={() => setDeliveryType('delivery')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${deliveryType === 'delivery'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card text-muted-foreground hover:border-primary/50'
                           }`}
-                        >
-                          <opt.icon className="w-6 h-6" />
-                          <span className="text-xs font-bold">{opt.label}</span>
-                        </button>
-                      ))}
+                      >
+                        <Bike className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-bold">Delivery</span>
+                      </button>
+                      <button
+                        onClick={() => setDeliveryType('retirada')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${deliveryType === 'retirada'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card text-muted-foreground hover:border-primary/50'
+                          }`}
+                      >
+                        <Store className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-bold">Retirada</span>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Address */}
-                  <AnimatePresence>
-                    {delivery === "delivery" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <h3 className="font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-primary" />
-                          Endereço de Entrega
-                        </h3>
-                        <div className="space-y-3">
+                  {/* Address Form (Conditional) */}
+                  {deliveryType === 'delivery' && (
+                    <div className="space-y-4 pt-2 animate-in fade-in zoom-in-95 duration-300">
+                      <h3 className="text-lg font-bold flex items-center gap-2 text-foreground border-t border-border pt-4">
+                        <MapPin className="w-5 h-5 text-primary" /> Endereço de Entrega
+                      </h3>
+                      <div className="grid grid-cols-4 gap-3">
+                        <div className="col-span-3 space-y-1">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Rua</label>
                           <input
                             type="text"
-                            placeholder="Rua *"
-                            maxLength={200}
-                            value={address.rua}
-                            onChange={(e) => setAddress((a) => ({ ...a, rua: e.target.value }))}
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                          />
-                          <div className="grid grid-cols-2 gap-3">
-                            <input
-                              type="text"
-                              placeholder="Número *"
-                              maxLength={20}
-                              value={address.numero}
-                              onChange={(e) => setAddress((a) => ({ ...a, numero: e.target.value }))}
-                              className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Bairro *"
-                              maxLength={100}
-                              value={address.bairro}
-                              onChange={(e) => setAddress((a) => ({ ...a, bairro: e.target.value }))}
-                              className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                            />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Complemento (opcional)"
-                            maxLength={200}
-                            value={address.complemento}
-                            onChange={(e) => setAddress((a) => ({ ...a, complemento: e.target.value }))}
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Ponto de referência (opcional)"
-                            maxLength={200}
-                            value={address.referencia}
-                            onChange={(e) => setAddress((a) => ({ ...a, referencia: e.target.value }))}
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                            value={addressRua}
+                            onChange={(e) => setAddressRua(e.target.value)}
+                            className="w-full bg-secondary border-none rounded-lg p-3 text-foreground placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary focus:outline-none"
+                            placeholder="Nome da sua rua"
                           />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Nº</label>
+                          <input
+                            type="text"
+                            value={addressNumero}
+                            onChange={(e) => setAddressNumero(e.target.value)}
+                            className="w-full bg-secondary border-none rounded-lg p-3 text-foreground placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary focus:outline-none"
+                            placeholder="123"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Bairro</label>
+                        <input
+                          type="text"
+                          value={addressBairro}
+                          onChange={(e) => setAddressBairro(e.target.value)}
+                          className="w-full bg-secondary border-none rounded-lg p-3 text-foreground placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary focus:outline-none"
+                          placeholder="Ex: Centro"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Complemento / Ref.</label>
+                        <input
+                          type="text"
+                          value={addressComplemento}
+                          onChange={(e) => setAddressComplemento(e.target.value)}
+                          className="w-full bg-secondary border-none rounded-lg p-3 text-foreground placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary focus:outline-none"
+                          placeholder="Apto, Casa, Ponto de ref..."
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
-            {/* Footer */}
             {items.length > 0 && (
-              <div className="p-5 border-t border-border space-y-4">
+              <div className="p-5 border-t border-border space-y-4 bg-card">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-display font-semibold text-foreground">Total</span>
                   <span className="text-2xl font-bold text-primary">R$ {totalPrice.toFixed(2)}</span>
                 </div>
-                {step === "cart" ? (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setStep("checkout")}
-                    className="w-full py-4 bg-green-600 text-white rounded-xl font-display font-bold text-lg uppercase tracking-wider shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                  >
-                    Continuar
-                  </motion.button>
-                ) : (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleFinalize}
-                    disabled={!canFinalize}
-                    className={`w-full py-4 rounded-xl font-display font-bold text-lg uppercase tracking-wider shadow-lg transition-colors flex items-center justify-center gap-2 ${
-                      canFinalize
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-muted text-muted-foreground cursor-not-allowed"
-                    }`}
-                  >
-                    Finalizar Pedido via WhatsApp
-                  </motion.button>
-                )}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFinalize}
+                  className="w-full py-4 bg-green-600 text-white rounded-xl font-display font-bold text-lg uppercase tracking-wider shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  {isCheckoutStep ? "Finalizar via WhatsApp" : "Continuar para Checkout"}
+                </motion.button>
               </div>
             )}
           </motion.div>

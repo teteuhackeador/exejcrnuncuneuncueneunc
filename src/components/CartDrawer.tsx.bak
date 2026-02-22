@@ -1,0 +1,320 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MapPin, CreditCard, Banknote, QrCode, Store, Truck, Motorcycle } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
+const CartDrawer = ({ open, onClose }: Props) => {
+  const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+  const [isCheckoutStep, setIsCheckoutStep] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState(""); 
+  const [deliveryType, setDeliveryType] = useState(""); 
+  const [addressRua, setAddressRua] = useState("");
+  const [addressNumero, setAddressNumero] = useState("");
+  const [addressBairro, setAddressBairro] = useState("");
+  const [addressComplemento, setAddressComplemento] = useState("");
+
+  const handleFinalize = () => {
+    if (items.length === 0) return;
+
+    if (isCheckoutStep) {
+      if (!paymentMethod) {
+        alert("Por favor, selecione a forma de pagamento.");
+        return;
+      }
+      if (!deliveryType) {
+        alert("Por favor, selecione a forma de entrega.");
+        return;
+      }
+      if (deliveryType === "delivery" && (!addressRua || !addressNumero || !addressBairro)) {
+        alert("Por favor, preencha o endereço de entrega (Rua, Número e Bairro).");
+        return;
+      }
+
+      const lines = items.map((item) => {
+        let line = `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}`;
+        if (item.additionals.length > 0) {
+          line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
+        }
+        if (item.removals.length > 0) {
+          line += `\n  Sem: ${item.removals.join(", ")}`;
+        }
+        if (item.observation) {
+          line += `\n  Obs: ${item.observation}`;
+        }
+        return line;
+      });
+
+      let message = `Olá! Gostaria de pedir:\n\n${lines.join("\n\n")}\n\n`;
+      message += `*Forma de Pagamento:* ${paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cartão' : 'Dinheiro'}\n`;
+      message += `*Entrega:* ${deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local'}\n`;
+      
+      if (deliveryType === 'delivery') {
+        message += `*Endereço:* ${addressRua}, ${addressNumero}\n`;
+        message += `*Bairro:* ${addressBairro}\n`;
+        if (addressComplemento) {
+          message += `*Complemento:* ${addressComplemento}\n`;
+        }
+      }
+
+      message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
+      
+      const encoded = encodeURIComponent(message);
+      window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
+      clearCart();
+      setIsCheckoutStep(false);
+      setPaymentMethod("");
+      setDeliveryType("");
+      setAddressRua("");
+      setAddressNumero("");
+      setAddressBairro("");
+      setAddressComplemento("");
+      onClose();
+    } else {
+      setIsCheckoutStep(true);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-card shadow-2xl flex flex-col"
+          >
+            <div className="flex items-center justify-between p-5 border-b border-border">
+              <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+                {isCheckoutStep ? (
+                  <button onClick={() => setIsCheckoutStep(false)} className="mr-1 hover:bg-secondary rounded-full p-1 transition-colors">
+                    <ArrowLeft className="w-6 h-6 text-foreground" />
+                  </button>
+                ) : (
+                  <ShoppingBag className="w-6 h-6 text-primary" />
+                )}
+                {isCheckoutStep ? 'Finalizar Pedido' : 'Carrinho'}
+              </h2>
+              <button onClick={onClose} className="p-2 hover:bg-secondary rounded-full transition-colors">
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {items.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <ShoppingBag className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg">Seu carrinho está vazio</p>
+                  <p className="text-sm mt-1">Adicione itens do cardápio!</p>
+                </div>
+              ) : isCheckoutStep ? (
+                <div className="space-y-6">
+                  {/* Formulário de Checkout */}
+                  <div>
+                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-primary" /> Forma de Pagamento
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => setPaymentMethod('pix')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${paymentMethod === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'}`}
+                      >
+                        <QrCode className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-semibold">Pix</span>
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('cartao')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${paymentMethod === 'cartao' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'}`}
+                      >
+                        <CreditCard className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-semibold">Cartão</span>
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('dinheiro')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${paymentMethod === 'dinheiro' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'}`}
+                      >
+                        <Banknote className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-semibold">Dinheiro</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-primary" /> Forma de Entrega
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setDeliveryType('delivery')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${deliveryType === 'delivery' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'}`}
+                      >
+                        <Motorcycle className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-semibold">Delivery</span>
+                      </button>
+                      <button
+                        onClick={() => setDeliveryType('retirada')}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${deliveryType === 'retirada' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50 text-muted-foreground'}`}
+                      >
+                        <Store className="w-6 h-6 mb-1" />
+                        <span className="text-sm font-semibold">Retirada</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {deliveryType === 'delivery' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-3 overflow-hidden"
+                      >
+                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2 pt-2">
+                          <MapPin className="w-5 h-5 text-primary" /> Endereço de Entrega
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="col-span-2 space-y-1">
+                              <label className="text-sm font-medium">Rua</label>
+                              <input 
+                                type="text" 
+                                value={addressRua} 
+                                onChange={(e) => setAddressRua(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary" 
+                                placeholder="Ex: Rua das Flores"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">Número</label>
+                              <input 
+                                type="text" 
+                                value={addressNumero} 
+                                onChange={(e) => setAddressNumero(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="123" 
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">Bairro</label>
+                            <input 
+                              type="text" 
+                              value={addressBairro} 
+                              onChange={(e) => setAddressBairro(e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary" 
+                              placeholder="Ex: Centro"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">Complemento (Opcional)</label>
+                            <input 
+                              type="text" 
+                              value={addressComplemento} 
+                              onChange={(e) => setAddressComplemento(e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Apt, Bloco, Ponto de referência..." 
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                items.map((item) => {
+                  const additionalsPrice = item.additionals.reduce((s, a) => s + a.price, 0);
+                  const itemTotal = (item.price + additionalsPrice) * item.quantity;
+
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="bg-secondary rounded-xl p-4"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-display font-bold text-foreground">{item.name}</h4>
+                          {item.additionals.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              + {item.additionals.map((a) => a.name).join(", ")}
+                            </p>
+                          )}
+                          {item.removals.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              Sem: {item.removals.join(", ")}
+                            </p>
+                          )}
+                          {item.observation && (
+                            <p className="text-xs text-muted-foreground italic">"{item.observation}"</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-8 h-8 rounded-full bg-card flex items-center justify-center"
+                          >
+                            <Minus className="w-3 h-3 text-foreground" />
+                          </button>
+                          <span className="font-bold text-foreground">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+                          >
+                            <Plus className="w-3 h-3 text-primary-foreground" />
+                          </button>
+                        </div>
+                        <span className="font-bold text-primary">R$ {itemTotal.toFixed(2)}</span>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+
+            {items.length > 0 && (
+              <div className="p-5 border-t border-border space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-display font-semibold text-foreground">Total</span>
+                  <span className="text-2xl font-bold text-primary">R$ {totalPrice.toFixed(2)}</span>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFinalize}
+                  className="w-full py-4 bg-green-600 text-white rounded-xl font-display font-bold text-lg uppercase tracking-wider shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  {isCheckoutStep ? 'Enviar Pedido via WhatsApp' : 'Continuar para Checkout'}
+                </motion.button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default CartDrawer;
