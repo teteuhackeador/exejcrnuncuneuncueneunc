@@ -42,7 +42,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
     }
 
     const lines = items.map((item) => {
-      let line = `*${item.quantity}x ${item.name}*`;
+      let line = `*${item.quantity}x ${item.name}* - R$ ${(item.price * item.quantity).toFixed(2)}`;
       if (item.additionals.length > 0) {
         line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
