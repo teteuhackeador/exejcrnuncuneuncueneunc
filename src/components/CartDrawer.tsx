@@ -18,6 +18,8 @@ const CartDrawer = ({ open, onClose }: Props) => {
   const [addressNumero, setAddressNumero] = useState("");
   const [addressBairro, setAddressBairro] = useState("");
   const [addressComplemento, setAddressComplemento] = useState("");
+  const [needsChange, setNeedsChange] = useState<boolean | null>(null);
+  const [changeAmount, setChangeAmount] = useState("");
 
   const handleFinalize = async () => {
     if (items.length === 0) return;
@@ -31,6 +33,19 @@ const CartDrawer = ({ open, onClose }: Props) => {
     if (!paymentMethod) {
       alert("Por favor, selecione a forma de pagamento.");
       return;
+    }
+    if (paymentMethod === 'dinheiro') {
+      if (needsChange === null) {
+        alert("Por favor, informe se precisa de troco.");
+        return;
+      }
+      if (needsChange) {
+        const amount = parseFloat(changeAmount.replace(',', '.'));
+        if (isNaN(amount) || amount <= totalPrice) {
+          alert(`O valor do troco deve ser maior que R$ ${totalPrice.toFixed(2).replace('.', ',')}.`);
+          return;
+        }
+      }
     }
     if (!deliveryType) {
       alert("Por favor, selecione a forma de entrega.");
@@ -85,7 +100,16 @@ const CartDrawer = ({ open, onClose }: Props) => {
     let message = `Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
     message += `*Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
     message += `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
-    message += `*Pagamento:* ${paymentLabel}\n`;
+    let paymentText = `*Pagamento:* ${paymentLabel}\n`;
+    if (paymentMethod === 'dinheiro') {
+      if (needsChange) {
+        paymentText += `*Troco para:* R$ ${parseFloat(changeAmount.replace(',', '.')).toFixed(2).replace('.', ',')}\n`;
+      } else {
+        paymentText += `*Troco:* Não precisa\n`;
+      }
+    }
+
+    message += paymentText;
     message += `*Entrega:* ${deliveryLabel}\n`;
 
     if (deliveryType === 'delivery') {
@@ -109,11 +133,15 @@ const CartDrawer = ({ open, onClose }: Props) => {
     setAddressNumero("");
     setAddressBairro("");
     setAddressComplemento("");
+    setNeedsChange(null);
+    setChangeAmount("");
     onClose();
   };
 
   const resetAndClose = () => {
     setIsCheckoutStep(false);
+    setNeedsChange(null);
+    setChangeAmount("");
     onClose();
   };
 
@@ -250,6 +278,59 @@ const CartDrawer = ({ open, onClose }: Props) => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Cash Change System (Conditional) */}
+                  {paymentMethod === 'dinheiro' && (
+                    <div className="space-y-3 pt-2 animate-in fade-in zoom-in-95 duration-300">
+                      <div className="border-t border-border pt-4">
+                        <p className="font-bold text-foreground">Precisa de troco?</p>
+                        <p className="text-xs text-muted-foreground mt-1 mb-3">
+                          Informe o valor em dinheiro que você vai pagar para que o entregador leve o troco.
+                        </p>
+                        {needsChange !== false && (
+                          <div className="relative mb-3">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">R$</span>
+                            <input
+                              type="text"
+                              value={changeAmount}
+                              onChange={(e) => {
+                                setNeedsChange(true);
+                                setChangeAmount(e.target.value);
+                              }}
+                              placeholder="0,00"
+                              className={`w-full bg-secondary border-2 rounded-xl py-3 pl-10 pr-10 text-foreground placeholder:text-muted-foreground/50 focus:outline-none transition-colors ${changeAmount && (isNaN(parseFloat(changeAmount.replace(',', '.'))) || parseFloat(changeAmount.replace(',', '.')) <= totalPrice)
+                                  ? 'border-destructive focus:border-destructive bg-destructive/5'
+                                  : 'border-transparent focus:border-primary'
+                                }`}
+                            />
+                            {changeAmount && (isNaN(parseFloat(changeAmount.replace(',', '.'))) || parseFloat(changeAmount.replace(',', '.')) <= totalPrice) && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive flex items-center justify-center">
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-bold">!</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {needsChange !== false && changeAmount && (isNaN(parseFloat(changeAmount.replace(',', '.'))) || parseFloat(changeAmount.replace(',', '.')) <= totalPrice) && (
+                          <p className="text-xs text-destructive mt-1 mb-3">
+                            O valor deve ser maior que R$ {totalPrice.toFixed(2).replace('.', ',')}
+                          </p>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            setNeedsChange(false);
+                            setChangeAmount("");
+                          }}
+                          className={`w-full py-3 rounded-xl border-2 font-bold transition-all ${needsChange === false
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-card text-muted-foreground hover:border-primary/50'
+                            }`}
+                        >
+                          Não preciso de troco
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Delivery Option */}
                   <div className="space-y-3">
