@@ -78,7 +78,7 @@ export const menuItems: MenuItem[] = [
     description: "Refrigerante lata bem gelado.",
     price: 6,
     category: 'drink',
-    image: "https://images.unsplash.com/photo-1595981267035-7b04d84d12bb?auto=format&fit=crop&q=80&w=800",
+    image: "https://assets.propmark.com.br/uploads/2020/01/guarana-antarctica.jpg",
   },
   {
     id: "10",
@@ -86,7 +86,7 @@ export const menuItems: MenuItem[] = [
     description: "Cerveja pilsen long neck (330ml).",
     price: 12,
     category: 'drink',
-    image: "https://images.unsplash.com/photo-1614316047717-b0853489e246?auto=format&fit=crop&q=80&w=800",
+    image: "https://www.caveroyale.com.br/wp-content/uploads/2025/07/cerveja-heineken-long-neck-330ml.webp",
   },
 ];
 
