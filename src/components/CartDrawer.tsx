@@ -41,32 +41,37 @@ const CartDrawer = ({ open, onClose }: Props) => {
     }
 
     const lines = items.map((item) => {
-      let line = `• ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}`;
+      let line = `🍔 *${item.quantity}x ${item.name}* — R$ ${(item.price * item.quantity).toFixed(2)}`;
       if (item.additionals.length > 0) {
-        line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
+        line += `\n  ➕ Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
       if (item.removals.length > 0) {
-        line += `\n  Sem: ${item.removals.join(", ")}`;
+        line += `\n  ❌ Sem: ${item.removals.join(", ")}`;
       }
       if (item.observation) {
-        line += `\n  Obs: ${item.observation}`;
+        line += `\n  📝 Obs: ${item.observation}`;
       }
       return line;
     });
 
-    let message = `Olá! Gostaria de pedir:\n\n${lines.join("\n\n")}\n\n`;
-    message += `*Forma de Pagamento:* ${paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cartão' : 'Dinheiro'}\n`;
-    message += `*Entrega:* ${deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local'}\n`;
+    const paymentEmoji = paymentMethod === 'pix' ? '🔑 Pix' : paymentMethod === 'cartao' ? '💳 Cartão' : '💵 Dinheiro';
+    const deliveryEmoji = deliveryType === 'delivery' ? '🛵 Delivery' : '🏪 Retirada no Local';
+
+    let message = `👋 Olá! Gostaria de fazer um pedido:\n\n`;
+    message += `🛒 *Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
+    message += `💰 *Pagamento:* ${paymentEmoji}\n`;
+    message += `📦 *Entrega:* ${deliveryEmoji}\n`;
 
     if (deliveryType === 'delivery') {
-      message += `*Endereço:* ${addressRua}, ${addressNumero}\n`;
-      message += `*Bairro:* ${addressBairro}\n`;
+      message += `📍 *Endereço:* ${addressRua}, ${addressNumero}\n`;
+      message += `🏘️ *Bairro:* ${addressBairro}\n`;
       if (addressComplemento) {
-        message += `*Complemento:* ${addressComplemento}\n`;
+        message += `ℹ️ *Complemento:* ${addressComplemento}\n`;
       }
     }
 
-    message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
+    message += `\n💵 *Total: R$ ${totalPrice.toFixed(2)}* 🎉`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
