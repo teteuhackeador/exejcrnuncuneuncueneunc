@@ -330,6 +330,25 @@ const CartDrawer = ({ open, onClose }: Props) => {
                       </div>
                     </div>
                   )}
+
+                  {/* Pickup Address (Conditional) */}
+                  {deliveryType === 'retirada' && (
+                    <div className="space-y-3 pt-2 animate-in fade-in zoom-in-95 duration-300">
+                      <div className="border-t border-border pt-4">
+                        <p className="text-sm text-muted-foreground">Endereço do restaurante:</p>
+                        <p className="text-base font-bold text-foreground mt-1">Rua dos Sabores, 123</p>
+                      </div>
+                      <a
+                        href="https://maps.google.com/?q=Rua+dos+Sabores+123"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 bg-card border-[1.5px] border-primary text-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors shadow-sm"
+                      >
+                        <MapPin className="w-5 h-5" />
+                        Ver no mapa
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
