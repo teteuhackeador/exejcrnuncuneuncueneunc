@@ -41,37 +41,37 @@ const CartDrawer = ({ open, onClose }: Props) => {
     }
 
     const lines = items.map((item) => {
-      let line = `\u{1F354} *${item.quantity}x ${item.name}* \u2014 R$ ${(item.price * item.quantity).toFixed(2)}`;
+      let line = `*${item.quantity}x ${item.name}* - R$ ${(item.price * item.quantity).toFixed(2)}`;
       if (item.additionals.length > 0) {
-        line += `\n  \u{2795} Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
+        line += `\n  + Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
       if (item.removals.length > 0) {
-        line += `\n  \u274C Sem: ${item.removals.join(", ")}`;
+        line += `\n  - Sem: ${item.removals.join(", ")}`;
       }
       if (item.observation) {
-        line += `\n  \u{1F4DD} Obs: ${item.observation}`;
+        line += `\n  Obs: ${item.observation}`;
       }
       return line;
     });
 
-    const paymentEmoji = paymentMethod === 'pix' ? `\u{1F511} Pix` : paymentMethod === 'cartao' ? `\u{1F4B3} Cart\u00e3o` : `\u{1F4B5} Dinheiro`;
-    const deliveryEmoji = deliveryType === 'delivery' ? `\u{1F6F5} Delivery` : `\u{1F3EA} Retirada no Local`;
+    const paymentLabel = paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cart\u00e3o' : 'Dinheiro';
+    const deliveryLabel = deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local';
 
-    let message = `\u{1F44B} Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
-    message += `\u{1F6D2} *Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
-    message += `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
-    message += `\u{1F4B0} *Pagamento:* ${paymentEmoji}\n`;
-    message += `\u{1F4E6} *Entrega:* ${deliveryEmoji}\n`;
+    let message = `Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
+    message += `*Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
+    message += `----------------\n`;
+    message += `*Pagamento:* ${paymentLabel}\n`;
+    message += `*Entrega:* ${deliveryLabel}\n`;
 
     if (deliveryType === 'delivery') {
-      message += `\u{1F4CD} *Endere\u00e7o:* ${addressRua}, ${addressNumero}\n`;
-      message += `\u{1F3D8} *Bairro:* ${addressBairro}\n`;
+      message += `*Endere\u00e7o:* ${addressRua}, ${addressNumero}\n`;
+      message += `*Bairro:* ${addressBairro}\n`;
       if (addressComplemento) {
-        message += `\u2139\uFE0F *Complemento:* ${addressComplemento}\n`;
+        message += `*Complemento:* ${addressComplemento}\n`;
       }
     }
 
-    message += `\n\u{1F4B5} *Total: R$ ${totalPrice.toFixed(2)}* \u{1F389}`;
+    message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
