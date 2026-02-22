@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import VerHash from "./pages/VerHash";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/verhash" element={<VerHash />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

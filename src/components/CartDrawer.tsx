@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MapPin, CreditCard, Banknote, QrCode, Store, Truck, Bike } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { encodeOrder, OrderPayload } from "@/utils/orderHash";
 
 interface Props {
   open: boolean;
@@ -57,9 +58,32 @@ const CartDrawer = ({ open, onClose }: Props) => {
     const paymentLabel = paymentMethod === 'pix' ? 'Pix' : paymentMethod === 'cartao' ? 'Cart\u00e3o' : 'Dinheiro';
     const deliveryLabel = deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Local';
 
+    // Build order payload and generate hash
+    const orderPayload: OrderPayload = {
+      items: items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        additionals: item.additionals.map((a) => ({ name: a.name, price: a.price })),
+        removals: item.removals,
+        observation: item.observation,
+      })),
+      paymentMethod,
+      deliveryType,
+      address: deliveryType === 'delivery' ? {
+        rua: addressRua,
+        numero: addressNumero,
+        bairro: addressBairro,
+        complemento: addressComplemento || undefined,
+      } : undefined,
+      total: totalPrice,
+      createdAt: new Date().toISOString(),
+    };
+    const orderHash = encodeOrder(orderPayload);
+
     let message = `Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
     message += `*Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
-    message += `━━━━━━━━━━━━━━━━\n`;
+    message += `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
     message += `*Pagamento:* ${paymentLabel}\n`;
     message += `*Entrega:* ${deliveryLabel}\n`;
 
@@ -72,6 +96,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
     }
 
     message += `\n*Total: R$ ${totalPrice.toFixed(2)}*`;
+    message += `\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n*C\u00f3digo do Pedido (para o atendente):*\n${orderHash}`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
