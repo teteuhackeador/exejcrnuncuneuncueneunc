@@ -43,10 +43,10 @@ const CartDrawer = ({ open, onClose }: Props) => {
     const lines = items.map((item) => {
       let line = `*${item.quantity}x ${item.name}* - R$ ${(item.price * item.quantity).toFixed(2)}`;
       if (item.additionals.length > 0) {
-        line += `\n  + Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
+        line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
       if (item.removals.length > 0) {
-        line += `\n  - Sem: ${item.removals.join(", ")}`;
+        line += `\n  Sem: ${item.removals.join(", ")}`;
       }
       if (item.observation) {
         line += `\n  Obs: ${item.observation}`;
@@ -59,7 +59,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
 
     let message = `Ol\u00e1! Gostaria de fazer um pedido:\n\n`;
     message += `*Meu Pedido:*\n${lines.join("\n\n")}\n\n`;
-    message += `----------------\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
     message += `*Pagamento:* ${paymentLabel}\n`;
     message += `*Entrega:* ${deliveryLabel}\n`;
 
