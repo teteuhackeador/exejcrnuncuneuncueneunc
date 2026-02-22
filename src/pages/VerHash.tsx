@@ -74,6 +74,7 @@ export default function VerHash() {
                     <label className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
                         Código do Pedido
                     </label>
+                    <br />
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}

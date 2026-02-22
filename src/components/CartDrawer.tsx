@@ -42,7 +42,8 @@ const CartDrawer = ({ open, onClose }: Props) => {
     }
 
     const lines = items.map((item) => {
-      let line = `*${item.quantity}x ${item.name}* - R$ ${(item.price * item.quantity).toFixed(2)}`;
+      const additionalsPrice = item.additionals.reduce((s, a) => s + a.price, 0);
+      let line = `*${item.quantity}x ${item.name}* - R$ ${((item.price + additionalsPrice) * item.quantity).toFixed(2)}`;
       if (item.additionals.length > 0) {
         line += `\n  Adicionais: ${item.additionals.map((a) => a.name).join(", ")}`;
       }
@@ -95,7 +96,7 @@ const CartDrawer = ({ open, onClose }: Props) => {
       }
     }
 
-    message += `\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n*C\u00f3digo do Pedido (para o atendente):*\n${orderHash}`;
+    message += `\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n*Total: R$ ${totalPrice.toFixed(2).replace('.', ',')}*\n\n*C\u00f3digo do Pedido (para o atendente):*\n\n${orderHash}`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/5533999999959?text=${encoded}`, "_blank");
