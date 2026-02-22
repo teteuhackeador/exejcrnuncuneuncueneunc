@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus } from "lucide-react";
 import { MenuItem, additionalOptions, removableIngredients } from "@/data/menu";
 import { useCart, CartItemAdditional } from "@/context/CartContext";
-import burgerImg from "@/assets/burger.png";
 
 interface Props {
   item: MenuItem;
@@ -65,7 +64,7 @@ const MenuItemModal = ({ item, onClose }: Props) => {
           className="bg-card rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
         >
           <div className="relative">
-            <img src={burgerImg} alt={item.name} className="w-full h-48 object-cover rounded-t-2xl" />
+            <img src={item.image} alt={item.name} className="w-full h-48 object-cover rounded-t-2xl" />
             <button
               onClick={onClose}
               className="absolute top-3 right-3 bg-background/80 backdrop-blur rounded-full p-2 hover:bg-background transition-colors"
@@ -81,50 +80,54 @@ const MenuItemModal = ({ item, onClose }: Props) => {
               <p className="text-primary font-bold text-xl mt-2">R$ {item.price.toFixed(2)}</p>
             </div>
 
-            {/* Adicionais */}
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-2">Adicionais</h4>
-              <div className="space-y-2">
-                {additionalOptions.map((add) => (
-                  <label
-                    key={add.name}
-                    className="flex items-center justify-between p-3 rounded-xl bg-secondary cursor-pointer hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={!!selectedAdditionals.find((a) => a.name === add.name)}
-                        onChange={() => toggleAdditional(add)}
-                        className="w-5 h-5 accent-primary rounded"
-                      />
-                      <span className="text-foreground">{add.name}</span>
-                    </div>
-                    <span className="text-primary font-semibold">+R$ {add.price.toFixed(2)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            {item.category === 'burger' && (
+              <>
+                {/* Adicionais */}
+                <div>
+                  <h4 className="font-display font-semibold text-foreground mb-2">Adicionais</h4>
+                  <div className="space-y-2">
+                    {additionalOptions.map((add) => (
+                      <label
+                        key={add.name}
+                        className="flex items-center justify-between p-3 rounded-xl bg-secondary cursor-pointer hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={!!selectedAdditionals.find((a) => a.name === add.name)}
+                            onChange={() => toggleAdditional(add)}
+                            className="w-5 h-5 accent-primary rounded"
+                          />
+                          <span className="text-foreground">{add.name}</span>
+                        </div>
+                        <span className="text-primary font-semibold">+R$ {add.price.toFixed(2)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Remover ingredientes */}
-            <div>
-              <h4 className="font-display font-semibold text-foreground mb-2">Remover Ingredientes</h4>
-              <div className="space-y-2">
-                {removableIngredients.map((ing) => (
-                  <label
-                    key={ing}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary cursor-pointer hover:bg-muted transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRemovals.includes(ing)}
-                      onChange={() => toggleRemoval(ing)}
-                      className="w-5 h-5 accent-accent rounded"
-                    />
-                    <span className="text-foreground">Sem {ing}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+                {/* Remover ingredientes */}
+                <div>
+                  <h4 className="font-display font-semibold text-foreground mb-2">Remover Ingredientes</h4>
+                  <div className="space-y-2">
+                    {removableIngredients.map((ing) => (
+                      <label
+                        key={ing}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-secondary cursor-pointer hover:bg-muted transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRemovals.includes(ing)}
+                          onChange={() => toggleRemoval(ing)}
+                          className="w-5 h-5 accent-accent rounded"
+                        />
+                        <span className="text-foreground">Sem {ing}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Observação */}
             <div>

@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { menuItems, MenuItem } from "@/data/menu";
 import MenuItemModal from "./MenuItemModal";
-import burgerImg from "@/assets/burger.png";
 
 const MenuSection = () => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'burger' | 'drink'>('burger');
+
+  const filteredItems = menuItems.filter(item => item.category === activeCategory);
 
   return (
     <section id="cardapio" className="py-16 bg-secondary/50">
@@ -23,8 +25,30 @@ const MenuSection = () => {
           <p className="text-muted-foreground mt-3">Escolha seu favorito e faça seu pedido!</p>
         </motion.div>
 
+        {/* Categoria Tabs */}
+        <div className="flex justify-center gap-3 mb-8 md:mb-12">
+          <button
+            onClick={() => setActiveCategory('burger')}
+            className={`px-5 py-2 md:px-8 md:py-3 rounded-full font-bold text-sm md:text-base transition-all ${activeCategory === 'burger'
+                ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                : 'bg-card text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent hover:border-primary/20'
+              }`}
+          >
+            Hambúrgueres
+          </button>
+          <button
+            onClick={() => setActiveCategory('drink')}
+            className={`px-5 py-2 md:px-8 md:py-3 rounded-full font-bold text-sm md:text-base transition-all ${activeCategory === 'drink'
+                ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                : 'bg-card text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent hover:border-primary/20'
+              }`}
+          >
+            Bebidas
+          </button>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-          {menuItems.map((item, i) => (
+          {filteredItems.map((item, i) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 30 }}
@@ -35,7 +59,7 @@ const MenuSection = () => {
             >
               <div className="relative overflow-hidden aspect-[4/3] sm:aspect-auto sm:h-48">
                 <img
-                  src={burgerImg}
+                  src={item.image}
                   alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
